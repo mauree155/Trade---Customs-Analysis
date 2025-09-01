@@ -1,1 +1,1 @@
-web: gunicorn dash-dashboard:server --bind 0.0.0.0:$PORT
+web: gunicorn dashboards.dash-dashboard:server --bind 0.0.0.0:$PORT
