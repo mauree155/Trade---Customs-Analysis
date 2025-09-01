@@ -101,22 +101,20 @@ def apply_filters(df, filters: dict):
 df = pd.read_csv(DATA_PATH)
 df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
 
-# Format HS codes
 if "HS_code" in df.columns:
     df["HS_code"] = df["HS_code"].astype(str).str.zfill(6)
 
-# Ensure datetime
 if "Receipt_date" in df.columns:
     df["Receipt_date"] = pd.to_datetime(df["Receipt_date"], errors="coerce")
 elif "Year" in df.columns and "Month" in df.columns:
-    df["Receipt_date"] = pd.to_datetime(df["Year"].astype(str)+"-"+df["Month"].astype(str)+"-01", errors="coerce")
+    df["Receipt_date"] = pd.to_datetime(df["Year"].astype(str) + "-" + df["Month"].astype(str) + "-01", errors="coerce")
 else:
     df["Receipt_date"] = pd.to_datetime("2022-01-01")
+
 df["Year"] = df["Receipt_date"].dt.year
 df["Month"] = df["Receipt_date"].dt.month
 df["YearMonth"] = df["Receipt_date"].dt.to_period("M").astype(str)
 
-# ISO3 for map
 if "Country_of_origin" in df.columns:
     def country_to_iso3(name):
         try:
@@ -320,33 +318,17 @@ def update_dashboard(is_dark, countries, years, months, importer, measure_store_
     if "HS_code" not in dff.columns or measure_col not in dff.columns or dff.empty:
         hs_fig = empty_fig("No data", is_dark)
     else:
-        hs_top = (
-            dff.groupby(["HS_code", "section_name"])[measure_col]
-            .sum()
-            .nlargest(10)
-            .reset_index()
-        )
-    
-    # plot with SectionName as color
-    hs_fig = px.bar(
-       hs_top,
-       x=measure_col,
-       y="HS_code",
-       color="section_name",
-       title="Top 10 HS Codes by CIF",
-       text=measure_col
-    )
-    hs_fig = apply_theme_to_fig(hs_fig, is_dark)
-    
-    # flip y-axis so highest shows at top
-    hs_fig.update_layout(yaxis=dict(autorange="reversed"))
+        hs_top = dff.groupby(["HS_code","section_name"])[measure_col].sum().nlargest(10).reset_index()
+        hs_fig = px.bar(hs_top, x=measure_col, y="HS_code", color="section_name", title="Top 10 HS Codes by "+measure_name, text=measure_col)
+        hs_fig = apply_theme_to_fig(hs_fig, is_dark)
+        hs_fig.update_layout(yaxis=dict(autorange="reversed"))
 
     # Container size bar
     if "Container_size" not in dff.columns or measure_col not in dff.columns or dff.empty:
         cont_fig = empty_fig("No data", is_dark)
     else:
         cont_df = dff.groupby("Container_size")[measure_col].sum().nsmallest(10).reset_index()
-        cont_fig = px.bar(cont_df, x=measure_col, y="Container_size", title="Top 10 Container Size by CIF")
+        cont_fig = px.bar(cont_df, x=measure_col, y="Container_size", title="Top 10 Container Size by "+measure_name)
         cont_fig = apply_theme_to_fig(cont_fig, is_dark)
 
     # Country map
@@ -363,4 +345,4 @@ def update_dashboard(is_dark, countries, years, months, importer, measure_store_
 
 # ---------------------- RUN SERVER ----------------------
 if __name__ == "__main__":
-    app.run(debug=True, port=8050) 
+    app.run(debug=True, port=8050)
