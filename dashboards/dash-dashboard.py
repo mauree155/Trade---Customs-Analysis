@@ -1,7 +1,9 @@
-# ---------------------- Complete Trade & Customs Dashboard (Optimized & Mobile-Friendly) ----------------------
-
+# -----------------------------
+# Optimized Trade & Customs Dashboard (Mobile-Friendly, Correct Top-10 + Month Names)
+# -----------------------------
 import pandas as pd
 import numpy as np
+import calendar
 from dash import Dash, dcc, html, Input, Output, State
 import dash_bootstrap_components as dbc
 import plotly.express as px
@@ -90,7 +92,7 @@ def kpi_card(title, value_str, delta_label, delta_pct, spark_fig, color, palette
 def apply_filters(df, filters: dict):
     dff = df.copy()
     for col, val in filters.items():
-        if val:
+        if val is not None and col in dff.columns:
             if isinstance(val, list):
                 dff = dff[dff[col].isin(val)]
             else:
@@ -101,40 +103,39 @@ def apply_filters(df, filters: dict):
 df = pd.read_csv(DATA_PATH)
 df = df.loc[:, ~df.columns.str.contains("^Unnamed")]
 
-# Format HS codes
+# Process date and codes
 if "HS_code" in df.columns:
     df["HS_code"] = df["HS_code"].astype(str).str.zfill(6)
 
-# Ensure datetime
 if "Receipt_date" in df.columns:
     df["Receipt_date"] = pd.to_datetime(df["Receipt_date"], errors="coerce")
 elif "Year" in df.columns and "Month" in df.columns:
-    df["Receipt_date"] = pd.to_datetime(df["Year"].astype(str)+"-"+df["Month"].astype(str)+"-01", errors="coerce")
+    df["Receipt_date"] = pd.to_datetime(df["Year"].astype(str) + "-" + df["Month"].astype(str) + "-01", errors="coerce")
 else:
     df["Receipt_date"] = pd.to_datetime("2022-01-01")
+
 df["Year"] = df["Receipt_date"].dt.year
 df["Month"] = df["Receipt_date"].dt.month
+df["MonthName"] = pd.Categorical(df["Receipt_date"].dt.month_name(), categories=list(calendar.month_name)[1:], ordered=True)
 df["YearMonth"] = df["Receipt_date"].dt.to_period("M").astype(str)
 
-# ISO3 for map
-if "Country_of_origin" in df.columns:
-    def country_to_iso3(name):
-        try:
-            return pycountry.countries.lookup(name).alpha_3
-        except:
+# Country ISO3
+def safe_iso3(country_name):
+    try:
+        if pd.isna(country_name) or str(country_name).strip().lower() in ["", "unknown", "n/a", "none"]:
             return None
-    df["Country_ISO3"] = df["Country_of_origin"].apply(country_to_iso3)
+        return pycountry.countries.lookup(country_name).alpha_3
+    except LookupError:
+        return None
+
+if "Country_of_origin" in df.columns:
+    df["Country_ISO3"] = df["Country_of_origin"].apply(safe_iso3)
 
 COLS = {
     "CIF": "CIF_value($)" if "CIF_value($)" in df.columns else ("CIF_value" if "CIF_value" in df.columns else None),
     "FOB": "FOB_value($)" if "FOB_value($)" in df.columns else ("FOB_value" if "FOB_value" in df.columns else None),
     "TAX": "Total_Tax($)" if "Total_Tax($)" in df.columns else ("Total_Tax" if "Total_Tax" in df.columns else None),
 }
-
-# ---------------------- PRECOMPUTED AGGREGATES ----------------------
-hs_agg = df.groupby(["HS_code", "section_name"]).sum(numeric_only=True).reset_index()
-container_agg = df.groupby("Container_size").sum(numeric_only=True).reset_index()
-country_agg = df.groupby("Country_ISO3").sum(numeric_only=True).reset_index()
 
 # ---------------------- DASH APP ----------------------
 external_stylesheets = [dbc.themes.BOOTSTRAP, dbc.themes.CYBORG]
@@ -145,7 +146,7 @@ app.title = "Trade & Customs — Optimized Dashboard"
 theme_store = dcc.Store(id="theme-store", storage_type="local")
 measure_store = dcc.Store(id="measure-store", data={"measure": "CIF"})
 
-# Header controls
+# ---------------------- LAYOUT ----------------------
 header_controls = html.Div(
     style={"display": "flex", "gap": "8px", "alignItems": "center", "justifyContent": "flex-end"},
     children=[
@@ -164,51 +165,52 @@ measure_button_row = html.Div(
     ]
 )
 
-# ---------------------- APP LAYOUT ----------------------
+# Month dropdown options: show names, keep numeric values (1..12)
+MONTH_OPTIONS = [{"label": calendar.month_name[m], "value": m} for m in range(1, 13)]
+
 app.layout = html.Div([
     theme_store,
     measure_store,
     dbc.Container([
         dbc.Row([
-            dbc.Col(html.H2("Trade & Customs Dashboard", id="title", className="my-3"), xs=12, md=6),
-            dbc.Col(header_controls, xs=12, md=6, className="d-flex justify-content-end align-items-center")
+            dbc.Col(html.H2("Trade & Customs Dashboard", id="title", className="my-3"), md=6),
+            dbc.Col(header_controls, md=6, className="d-flex justify-content-end align-items-center")
         ], align="center", className="mb-2"),
 
         dbc.Row([
             dbc.Col([html.Label("Country of Origin", id="label-country"),
                      dcc.Dropdown(id="country-dd",
                                   options=[{"label": c, "value": c} for c in sorted(df["Country_of_origin"].dropna().unique())] if "Country_of_origin" in df.columns else [],
-                                  multi=True, placeholder="All countries")], xs=12, sm=6, md=3, className="mb-2"),
+                                  multi=True, placeholder="All countries")], md=3),
             dbc.Col([html.Label("Year", id="label-year"),
                      dcc.Dropdown(id="year-dd",
                                   options=[{"label": int(y), "value": int(y)} for y in sorted(df["Year"].dropna().unique())],
-                                  multi=True, placeholder="All years")], xs=12, sm=6, md=3, className="mb-2"),
+                                  multi=True, placeholder="All years")], md=3),
             dbc.Col([html.Label("Month", id="label-month"),
                      dcc.Dropdown(id="month-dd",
-                                  options=[{"label": m, "value": m} for m in range(1, 13)],
-                                  multi=True, placeholder="All months")], xs=12, sm=6, md=3, className="mb-2"),
+                                  options=MONTH_OPTIONS,
+                                  multi=True, placeholder="All months")], md=3),
             dbc.Col([html.Label("Importer"),
                      dcc.Dropdown(id="importer-dd",
                                   options=[{"label": i, "value": i} for i in sorted(df["Importer"].dropna().unique())] if "Importer" in df.columns else [],
-                                  multi=False, placeholder="All importers")], xs=12, sm=6, md=3, className="mb-2"),
+                                  multi=False, placeholder="All importers")], md=3),
         ], className="mb-2"),
 
         dbc.Row(id="kpi-row", className="g-3 mb-2"),
-        dbc.Row(dbc.Col(measure_button_row), className="mb-2"),
+        dbc.Row(dbc.Col(measure_button_row), className="mb-1"),
 
         dbc.Row([
             dbc.Col([
-                dbc.Card(dbc.CardBody([dcc.Graph(id="trend-chart", style={"width": "100%", "height": "250px"})]), id="card-trend"),
+                dbc.Card(dbc.CardBody([dcc.Graph(id="trend-chart", config={"displayModeBar": False})]), id="card-trend"),
                 html.Br(),
-                dbc.Card(dbc.CardBody([dcc.Graph(id="hs-bar", style={"width": "100%", "height": "250px"})]), id="card-hs")
-            ], xs=12, md=7, className="mb-3"),
-
+                dbc.Card(dbc.CardBody([dcc.Graph(id="hs-bar", config={"displayModeBar": False})]), id="card-hs")
+            ], md=7),
             dbc.Col([
-                dbc.Card(dbc.CardBody([dcc.Graph(id="container-bar", style={"width": "100%", "height": "250px"})]), id="card-container"),
+                dbc.Card(dbc.CardBody([dcc.Graph(id="container-bar", config={"displayModeBar": False})]), id="card-container"),
                 html.Br(),
-                dbc.Card(dbc.CardBody([dcc.Graph(id="country-map", style={"width": "100%", "height": "250px"})]), id="card-map")
-            ], xs=12, md=5, className="mb-3"),
-        ]),
+                dbc.Card(dbc.CardBody([dcc.Graph(id="country-map", config={"displayModeBar": False})]), id="card-map")
+            ], md=5),
+        ], className="mt-1"),
 
         html.Div(id="invisible-recalc", style={"display": "none"})
     ], fluid=True, id="page-container", style={"padding": "16px"})
@@ -216,20 +218,16 @@ app.layout = html.Div([
 
 # ---------------------- CALLBACKS ----------------------
 @app.callback(Output("theme-store", "data"), Input("theme-switch", "value"), State("theme-store", "data"))
-def persist_theme(is_dark, data):
-    return {"dark": bool(is_dark)}
+def persist_theme(is_dark, data): return {"dark": bool(is_dark)}
 
 @app.callback(Output("theme-switch", "value"), Input("invisible-recalc", "children"), State("theme-store", "data"))
-def restore_theme(_, data):
-    if isinstance(data, dict) and "dark" in data: return bool(data["dark"])
-    return True
+def restore_theme(_, data): return bool(data.get("dark", True)) if isinstance(data, dict) else True
 
 @app.callback(
     Output("country-dd", "value"), Output("year-dd", "value"), Output("month-dd", "value"), Output("importer-dd", "value"),
     Input("clear-filters", "n_clicks"), prevent_initial_call=True
 )
-def clear_filters(n_clicks):
-    return None, None, None, None
+def clear_filters(n_clicks): return None, None, None, None
 
 @app.callback(
     Output("measure-store", "data"),
@@ -239,8 +237,9 @@ def clear_filters(n_clicks):
     State("measure-store", "data"),
 )
 def select_measure(n_cif, n_fob, n_tax, current):
+    current = current or {"measure": "CIF"}
     clicks = {"CIF": int(n_cif or 0), "FOB": int(n_fob or 0), "TAX": int(n_tax or 0)}
-    selected = max(clicks.items(), key=lambda kv: kv[1])[0] if any(clicks.values()) else (current or {"measure": "CIF"})["measure"]
+    selected = max(clicks.items(), key=lambda kv: kv[1])[0] if any(clicks.values()) else current.get("measure", "CIF")
     return {"measure": selected}
 
 @app.callback(
@@ -250,7 +249,7 @@ def select_measure(n_cif, n_fob, n_tax, current):
     Input("measure-store", "data"),
 )
 def update_measure_button_colors(store_data):
-    measure = store_data.get("measure") if isinstance(store_data, dict) else "CIF"
+    measure = (store_data or {}).get("measure", "CIF")
     return ("primary" if measure=="CIF" else "secondary",
             "primary" if measure=="FOB" else "secondary",
             "primary" if measure=="TAX" else "secondary")
@@ -276,7 +275,7 @@ def update_measure_button_colors(store_data):
         Input("theme-switch", "value"),
         Input("country-dd", "value"),
         Input("year-dd", "value"),
-        Input("month-dd", "value"),
+        Input("month-dd", "value"),     # values are numeric (1..12), labels are month names
         Input("importer-dd", "value"),
         Input("measure-store", "data"),
     ]
@@ -289,19 +288,27 @@ def update_dashboard(is_dark, countries, years, months, importer, measure_store_
     label_style = {"color": pal["muted"], "fontWeight": 600}
     card_style = {"backgroundColor": pal["card"], "border": "1px solid rgba(128,128,128,0.12)", "borderRadius": "12px"}
 
-    # Filtering
+    # Filtered DF
     dff = apply_filters(df, {"Country_of_origin": countries, "Year": years, "Month": months, "Importer": importer})
-    if dff.empty: dff = pd.DataFrame(columns=df.columns)
+    if dff.empty:
+        dff = pd.DataFrame(columns=df.columns)
 
-    measure_col = COLS.get(measure_store_data.get("measure", "CIF"), COLS["CIF"])
-    measure_name = measure_store_data.get("measure", "CIF")
+    # Measure
+    measure_name = (measure_store_data or {}).get("measure", "CIF")
+    measure_col = COLS.get(measure_name, COLS["CIF"])
 
     # ---------------- KPI CARDS ----------------
+    total_val = dff[measure_col].sum() if (measure_col and measure_col in dff.columns) else 0
+    spark_sum = dff.groupby("YearMonth")[measure_col].sum() if (measure_col and measure_col in dff.columns) else pd.Series([0]*6)
+    avg_val = dff[measure_col].mean() if (measure_col and measure_col in dff.columns) else 0
+    mass_avg = dff["Mass_(kg)"].mean() if "Mass_(kg)" in dff.columns else 0
+    ship_count = len(dff["Receipt_number"].unique()) if "Receipt_number" in dff.columns else 0
+
     kpis = [
-        {"title": f"Total {measure_name}", "value": dff[measure_col].sum() if measure_col else 0, "prev": dff[measure_col].sum()*0.85 if measure_col else 0, "spark": dff.groupby("YearMonth")[measure_col].sum().tolist() if measure_col else [0]*6},
-        {"title": "Total Shipments", "value": len(dff["Receipt_number"].unique()) if "Receipt_number" in dff.columns else 0, "prev": len(dff["Receipt_number"].unique())*0.85 if "Receipt_number" in dff.columns else 0, "spark": list(range(len(dff)))},
-        {"title": "Avg Transaction Value", "value": dff[measure_col].mean() if measure_col else 0, "prev": dff[measure_col].mean()*0.9 if measure_col else 0, "spark": dff.groupby("YearMonth")[measure_col].mean().tolist() if measure_col else [0]*6},
-        {"title": "Avg Mass per Shipment", "value": dff["Mass_(kg)"].mean() if "Mass_(kg)" in dff.columns else 0, "prev": dff["Mass_(kg)"].mean()*0.9 if "Mass_(kg)" in dff.columns else 0, "spark": dff.groupby("YearMonth")["Mass_(kg)"].mean().tolist() if "Mass_(kg)" in dff.columns else [0]*6},
+        {"title": f"Total {measure_name}", "value": total_val, "prev": total_val*0.85, "spark": spark_sum.tolist()},
+        {"title": "Total Shipments", "value": ship_count, "prev": ship_count*0.85, "spark": list(range(max(1, ship_count)))},
+        {"title": "Avg Transaction Value", "value": avg_val, "prev": avg_val*0.9, "spark": (dff.groupby("YearMonth")[measure_col].mean().tolist() if (measure_col and measure_col in dff.columns) else [0]*6)},
+        {"title": "Avg Mass per Shipment", "value": mass_avg, "prev": mass_avg*0.9, "spark": (dff.groupby("YearMonth")["Mass_(kg)"].mean().tolist() if "Mass_(kg)" in dff.columns else [0]*6)},
     ]
 
     kpi_cards = []
@@ -310,48 +317,82 @@ def update_dashboard(is_dark, countries, years, months, importer, measure_store_
         delta_pct = _safe_growth(k["value"], k["prev"])
         spark_fig = sparkline(k["spark"], is_dark=is_dark)
         delta_label = "YoY%" if "Total" in k["title"] and measure_name in ["CIF","FOB","TAX"] else "MoM%"
-        card = kpi_card(k["title"], val_str, delta_label, delta_pct, spark_fig, pal["accent"], pal)
-        kpi_cards.append(dbc.Col(card, xs=12, sm=6, md=3))
+        kpi_cards.append(dbc.Col(kpi_card(k["title"], val_str, delta_label, delta_pct, spark_fig, pal["accent"], pal),
+                                 xs=12, sm=6, md=3))
 
     # ---------------- CHARTS ----------------
     # Trend chart
-    if dff.empty or measure_col not in dff.columns:
+    if dff.empty or not measure_col or measure_col not in dff.columns:
         trend_fig = empty_fig("No data", is_dark)
     else:
-        trend_data = dff.groupby("YearMonth")[measure_col].sum().reset_index()
-        trend_fig = px.line(trend_data, x="YearMonth", y=measure_col, markers=True, title=f"{measure_name} Trend")
+        trend_df = (dff
+                    .assign(_YM=pd.to_datetime(dff["YearMonth"] + "-01", errors="coerce"))
+                    .groupby(["YearMonth","_YM"], as_index=False)[measure_col].sum()
+                    .sort_values("_YM"))
+        trend_fig = px.line(trend_df, x="YearMonth", y=measure_col, title=f"{measure_name} Trend", markers=True)
         trend_fig = apply_theme_to_fig(trend_fig, is_dark)
-       
-        # HS bar
-        if dff.empty or "HS_code" not in dff.columns or measure_col not in dff.columns:
-                hs_fig = empty_fig("No data", is_dark)
-        else:
-            hs_top = dff.groupby("HS_code")[measure_col].sum().nlargest(10).reset_index()
-    hs_fig = px.bar(hs_top, x=measure_col, y="HS_code", orientation="h", title="Top 10 HS Codes")
-    hs_fig = apply_theme_to_fig(hs_fig, is_dark)
 
-    # Container bar
-    if dff.empty or "Container_size" not in dff.columns or measure_col not in dff.columns:
+    # HS code Top-10 (highest -> lowest), horizontal bars with correct order
+    if dff.empty or "HS_code" not in dff.columns or not measure_col or measure_col not in dff.columns:
+        hs_fig = empty_fig("No data", is_dark)
+    else:
+        hs_top = (dff.groupby(["HS_code", "section_name"], as_index=False)[measure_col]
+                    .sum()
+                    .sort_values(measure_col, ascending=False)
+                    .head(10))
+        # Ensure y shows highest at top
+        order_for_y = list(hs_top.sort_values(measure_col, ascending=True)["HS_code"])
+        hs_top["HS_code"] = pd.Categorical(hs_top["HS_code"], categories=order_for_y, ordered=True)
+        hs_fig = px.bar(
+            hs_top,
+            x=measure_col,
+            y="HS_code",
+            color="section_name",
+            orientation="h",
+            title=f"Bottom 10 HS Codes by {measure_name}"
+        )
+        hs_fig = apply_theme_to_fig(hs_fig, is_dark)
+
+    # Container Top-10 (highest -> lowest)
+    if dff.empty or "Container_size" not in dff.columns or not measure_col or measure_col not in dff.columns:
         container_fig = empty_fig("No data", is_dark)
     else:
-        cont_top = dff.groupby("Container_size")[measure_col].sum().reset_index()
-        container_fig = px.bar(cont_top, x="Container_size", y=measure_col, title="Container Size Distribution")
+        container_top = (dff.groupby("Container_size", as_index=False)[measure_col]
+                           .sum()
+                           .sort_values(measure_col, ascending=False)
+                           .head(10))
+        # Keep visual order from highest to lowest
+        container_fig = px.bar(
+            container_top,
+            x=measure_col,
+            y="Container_size",
+            orientation="h",
+            title=f"Top 10 Containers by {measure_name}"
+        )
+        # Highest at top
+        order_for_cont_y = list(container_top.sort_values(measure_col, ascending=True)["Container_size"])
+        container_fig.update_yaxes(categoryorder="array", categoryarray=order_for_cont_y)
         container_fig = apply_theme_to_fig(container_fig, is_dark)
-    
+
     # Country map
-    if dff.empty or "Country_ISO3" not in dff.columns or measure_col not in dff.columns:
-        map_fig = empty_fig("No data", is_dark)
+    if dff.empty or "Country_ISO3" not in dff.columns or not measure_col or measure_col not in dff.columns:
+        country_fig = empty_fig("No data", is_dark)
     else:
-        country_sum = dff.groupby("Country_ISO3")[measure_col].sum().reset_index()
-        map_fig = px.choropleth(country_sum, locations="Country_ISO3", color=measure_col,
-                            color_continuous_scale="Blues", title="By Country of Origin")
-        map_fig = apply_theme_to_fig(map_fig, is_dark)
-        return (
-            page_style, title_style, label_style, label_style,
-            kpi_cards,
-    trend_fig, hs_fig, container_fig, map_fig,
-    card_style, card_style, card_style, card_style
-)
-    #---------------------- RUN APP ----------------------
-    if __name__ == "__main__":
-        app.run_server(debug=True, port=8050)
+        country_df = dff.groupby("Country_ISO3", as_index=False)[measure_col].sum()
+        country_fig = px.choropleth(
+            country_df,
+            locations="Country_ISO3",
+            color=measure_col,
+            color_continuous_scale="Blues",
+            title=f"{measure_name} by Country",
+            locationmode="ISO-3"
+        )
+        country_fig = apply_theme_to_fig(country_fig, is_dark)
+
+    return (page_style, title_style, label_style, label_style,
+            kpi_cards, trend_fig, hs_fig, container_fig, country_fig,
+            card_style, card_style, card_style, card_style)
+
+# ---------------------- RUN SERVER ----------------------
+if __name__ == "__main__":
+    app.run(debug=True, port=8050)
