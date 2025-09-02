@@ -1,6 +1,6 @@
 # -----------------------------
-# Optimized Trade & Customs Dashboard (Mobile-Friendly, Correct Top-10 + Month Names)
-# -----------------------------
+# Optimized Trade & Customs Dashboard 
+
 import pandas as pd
 import numpy as np
 import calendar
