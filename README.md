@@ -1,20 +1,20 @@
 # Trade & Customs Data Analysis
 
 ## Table of Contents
-- [Project Overview](##project-overview)
-- [Business Problem](##business-problem)
-- [Data Sources](##data-sources)
-- [Tools and Libraries](##tools-and-libraries)
-- [Workflow](##workflow)
-  - [1. Data Cleaning](##1-data-cleaning)
-  - [2. Exploratory Data Analysis (EDA)](##2-exploratory-data-analysis-eda)
-  - [3. Feature Engineering](##3-feature-engineering)
-- [Dashboard](##dashboard)
-- [Findings and Insights](##findings-and-insights)
-- [Recommendations](##recommendations)
-- [How to Reproduce](##how-to-reproduce)
-- [Conclusion](##conclusion)
-- [Contact](##contact)
+- [Project Overview](#project-overview)
+- [Business Problem](#business-problem)
+- [Data Sources](#data-sources)
+- [Tools and Libraries](#tools-and-libraries)
+- [Workflow](#workflow)
+  - [1. Data Cleaning](#1-data-cleaning)
+  - [2. Exploratory Data Analysis (EDA)](#2-exploratory-data-analysis-eda)
+  - [3. Feature Engineering](#3-feature-engineering)
+- [Dashboard](#dashboard)
+- [Findings and Insights](#findings-and-insights)
+- [Recommendations](#recommendations)
+- [How to Reproduce](#how-to-reproduce)
+- [Conclusion](#conclusion)
+- [Contact](#contact)
 
 ## Project Overview
 This project demonstrates how raw **trade and customs data** can be transformed into **actionable insights** for decision-makers.  
@@ -343,7 +343,7 @@ These findings underscore the importance of **data-driven customs management** t
 For questions, collaborations, or project discussions:
 
 **Maureen Okoro**  
-- 📧 [Email](okoromaureen590@gmail.com) 
+- >a href="okoromaureen590@gmail.com">📧 Email</a> 
 - 🌐 [GitHub](https://github.com/mauree155]
 )
 - 🔗 [LinkedIn](https://ng.linkedin.com/in/maureen-okoro-8a1972245)
