@@ -291,7 +291,7 @@ These findings underscore the importance of **data-driven customs management** t
 
 ## Contact
 
-For questions, collaborations, or project discussions:  
+For questions, collaborations, or project discussions:
 
 **Maureen Okoro**  
 📧 Email: [okoromaureen590@gmail.com]  
