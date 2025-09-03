@@ -342,8 +342,8 @@ These findings underscore the importance of **data-driven customs management** t
 
 For questions, collaborations, or project discussions:
 
-**Maureen Okoro**  
-- <a href="okoromaureen590@gmail.com">📧 Email</a> 
+**Maureen Okoro**              
+- 📨 [Email](mailto:okoromaureen590@gmail.com")
 - 🌐 [GitHub](https://github.com/mauree155]
 )
 - 🔗 [LinkedIn](https://ng.linkedin.com/in/maureen-okoro-8a1972245)
