@@ -212,7 +212,7 @@ An interactive dashboard was developed to visualize key insights from the trade 
 **Deployment:**  
 The dashboard was deployed using **Render** for public accessibility.  
 
-🔗 [View the Live Dashboard](https://your-dashboard-link-here.com)
+🔗 [View the Live Dashboard](https://trade-and-customs-analysis-awaq.onrender.com/)
 
 
 ## Findings and Insights
@@ -277,7 +277,56 @@ monthly_cif = df.groupby(df["Reg_date"].dt.to_period("M"))["CIF_value($)"].sum()
 monthly_cif
 ```
 
-## Conclusions
+## Recommendations
+
+1. **Diversify Trade Partnerships**  
+   Reduce dependency on China and a few HS sections by creating trade incentives with other regions and strengthening local industries.  
+
+2. **Review Taxation Policies**  
+   Move beyond purely value-based taxation. Consider hybrid models that incorporate **mass** or **container size** to ensure balanced revenue collection.  
+
+3. **Enhance Compliance Systems**  
+   - Automate reminders and penalties for overdue tax payments.  
+   - Introduce rewards or fast-track clearance for compliant importers.  
+
+4. **Improve Processing Efficiency**  
+   Use historical delay data to identify underperforming offices and digitize customs clearance to reduce bottlenecks.  
+
+5. **Leverage Predictive Analytics**  
+   Build models to forecast **seasonal trade spikes** and **revenue flows** to support proactive staffing, logistics, and budgeting.  
+
+
+## How to Reproduce
+
+Follow these steps to replicate the analysis:
+
+1. **Clone the Repository**  
+   ```bash
+   git clone https://github.com/your-username/trade-customs-analysis.git
+   cd trade-customs-analysis
+   Install Dependencies
+   ```
+2. Install Dependencies
+```bash
+pip install -r requirements.txt
+```
+3. Run the Analysis
+```bash
+Data Cleaning:
+python cleaning.py
+Exploratory Data Analysis (EDA):
+python eda.py
+Feature Engineering:
+python feature_engineering.py
+```
+4. Launch Dashboard Locally
+```bash
+   dash-dashboard.py
+```
+5. View Deployed Dashboard
+Access the live version here: [Dashboard Link](https://trade-and-customs-analysis-awaq.onrender.com/)
+
+## Conclusion
 
 This analysis of trade and customs data revealed several key insights:  
 
@@ -294,6 +343,7 @@ These findings underscore the importance of **data-driven customs management** t
 For questions, collaborations, or project discussions:
 
 **Maureen Okoro**  
-📧 Email: [okoromaureen590@gmail.com]  
-🌐 GitHub: [your-github-link]  
-🔗 LinkedIn: [your-linkedin-link]  
+- 📧 [Email](okoromaureen590@gmail.com) 
+- 🌐 [GitHub](https://github.com/mauree155]
+)
+- 🔗 [LinkedIn](https://ng.linkedin.com/in/maureen-okoro-8a1972245)
