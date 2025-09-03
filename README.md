@@ -74,7 +74,8 @@ The following steps were applied to prepare the data for analysis:
 - Renamed columns for clarity and consistency  
 - Standardized country names using the `pycountry` library  
 - Handled missing values with forward fill and replacement strategies  
-- Converted date fields into proper `datetime` objects  
+- Converted date fields into proper `datetime` objects
+- Created chapter, section & section_name columns based on the guidance offered by : 
 - Detected potential outliers using the IQR method  
 - Converted categorical identifiers (Importer, HS_code, Year, Chapter) to string type  
 
@@ -199,6 +200,8 @@ df["Tax_to_CIF_ratio"] = df["Total_Tax($)"] / df["CIF_value($)"]
 df["Year"] = df["Reg_date"].dt.year
 ```
 
+view my charts <a href="https://github.com/mauree155/Trade-and-Customs-Analysis/tree/main/Charts">Here</a>
+
 ## Dashboard
 An interactive dashboard was developed to visualize key insights from the trade and customs dataset. It provides stakeholders with a clear view of **import volumes, tax revenue, compliance, and trade dependencies**.  
 
@@ -231,9 +234,11 @@ print(country_share_percent)
 ```
 
 
-### 2. Product Categories (section name)
+### 2. Product Categories (HS codes & sections)
 - Imports are concentrated within a narrow set of product categories.  
-- **HS Code 28721000 alone contributes 7.79% of imports (≈ $150B)**.  
+- **HS Code 28721000 alone contributes 7.79% of imports (≈ $150B)**.
+- Section VI (Chemicals & Allied Industries) is the largest, making up ≈ 22% of imports.
+Section XI (Textiles and Textile Articles) and Section XVI (Machinery & Electrical
 - The **top 5 HS codes collectively account for nearly 28%** of trade value.  
 - This concentration means disruptions in just a few product classes would significantly impact trade revenue.
 ```python
@@ -241,6 +246,10 @@ print(country_share_percent)
 hs_share = df.groupby("HS_code")["CIF_value($)"].sum().nlargest(5)
 hs_share_percent = (hs_share /df["CIF_value($)"].sum()) * 100
 print(hs_share_percent)
+
+# Top sections by CIF value
+section_share = df.groupby("section")["CIF_value($)"].sum().nlargest(5)
+(section_share / df["CIF_value($)"].sum() * 100).round(2)
 ```
 
 ### 3. Taxation Efficiency
