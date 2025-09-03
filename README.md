@@ -1,20 +1,20 @@
 # Trade & Customs Data Analysis
 
 ## Table of Contents
-- [Project Overview](#project-overview)
-- [Business Problem](#business-problem)
-- [Data Sources](#data-sources)
-- [Tools and Libraries](#tools-and-libraries)
-- [Workflow](#workflow)
-  - [1. Data Cleaning](#1-data-cleaning)
-  - [2. Exploratory Data Analysis (EDA)](#2-exploratory-data-analysis-eda)
-  - [3. Feature Engineering](#3-feature-engineering)
-- [Dashboard](#dashboard)
-- [Findings and Insights](#findings-and-insights)
-- [Recommendations](#recommendations)
-- [How to Reproduce](#how-to-reproduce)
-- [Conclusion](#conclusion)
-- [Contact](#contact)
+- [Project Overview](##project-overview)
+- [Business Problem](##business-problem)
+- [Data Sources](##data-sources)
+- [Tools and Libraries](##tools-and-libraries)
+- [Workflow](##workflow)
+  - [1. Data Cleaning](##1-data-cleaning)
+  - [2. Exploratory Data Analysis (EDA)](##2-exploratory-data-analysis-eda)
+  - [3. Feature Engineering](##3-feature-engineering)
+- [Dashboard](##dashboard)
+- [Findings and Insights](##findings-and-insights)
+- [Recommendations](##recommendations)
+- [How to Reproduce](##how-to-reproduce)
+- [Conclusion](##conclusion)
+- [Contact](##contact)
 
 ## Project Overview
 This project demonstrates how raw **trade and customs data** can be transformed into **actionable insights** for decision-makers.  
