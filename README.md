@@ -16,8 +16,6 @@
 - [Conclusion](#conclusion)
 - [Contact](#contact)
 
----
-
 ## Project Overview
 This project demonstrates how raw **trade and customs data** can be transformed into **actionable insights** for decision-makers.  
 
@@ -29,8 +27,6 @@ The workflow covers:
 
 The end result is a comprehensive data product that provides customs authorities, policymakers, and analysts with a clear view of trade flows, risks, and opportunities.  
 
----
-
 ## Business Problem
 Customs agencies face several recurring challenges that hinder efficiency and revenue collection:
 
@@ -41,8 +37,6 @@ Customs agencies face several recurring challenges that hinder efficiency and re
 
 Without structured analysis, these issues remain hidden within raw data.  
 This project uses data analytics to uncover inefficiencies, identify risks, and highlight opportunities for reform.
-
----
 
 ## Data Sources
 The dataset consists of real-world style trade and customs records containing:  
@@ -58,8 +52,6 @@ The dataset consists of real-world style trade and customs records containing:
 - **Importer & Custom_office** – Actors and offices involved in transactions.  
 
 These features allowed for cleaning, exploratory analysis, and the creation of compliance and taxation-related KPIs.  
----
-
 ## Tools and Libraries
 The following tools and libraries were used throughout the project:  
 
@@ -71,8 +63,6 @@ The following tools and libraries were used throughout the project:
 - **plotly.express** – interactive charts for the dashboard  
 - **pycountry** – standardization of country names  
 - **Render** – deployment of the interactive dashboard
-
----
 
 ## Workflow
 
@@ -141,7 +131,6 @@ for col in num_cols:
     plt.title(f"Outlier Detection in {col}")
     plt.show()
 ```
----
 
 ### 2. Exploratory Data Analysis (EDA)
 The cleaned dataset was explored to uncover trade dynamics, correlations, and patterns across product categories, countries, and taxation.  
@@ -185,7 +174,6 @@ plt.show()
 - Correlation Heatmap
 - CIF Value Distribution
 - Top Countries by Import Volume
----
 
 ### 3. Feature Engineering
 To enrich the dataset, new variables were engineered to capture **compliance behavior, timeliness, and trade efficiency**.  
@@ -210,7 +198,6 @@ df["Tax_to_CIF_ratio"] = df["Total_Tax($)"] / df["CIF_value($)"]
 # Extract year for time-based analysis
 df["Year"] = df["Reg_date"].dt.year
 ```
----
 
 ## Dashboard
 An interactive dashboard was developed to visualize key insights from the trade and customs dataset. It provides stakeholders with a clear view of **import volumes, tax revenue, compliance, and trade dependencies**.  
@@ -227,7 +214,7 @@ The dashboard was deployed using **Render** for public accessibility.
 
 🔗 [View the Live Dashboard](https://your-dashboard-link-here.com)
 
----
+
 ## Findings and Insights
 
 ### 1. Country Dependence
@@ -264,7 +251,6 @@ print(hs_share_percent)
 ```python
 df["CIF_value($)"].corr(df["Total_Tax($)"])
 ```
----
 
 ### 4. Processing Timeliness
 - The **average processing time** from registration to receipt is **4.5 days**.  
@@ -274,9 +260,6 @@ df["CIF_value($)"].corr(df["Total_Tax($)"])
 df["Processing_Days"] = (df["Receipt_date"] - df["Reg_date"]).dt.days
 df["Processing_Days"].mean(), (df["Processing_Days"] > 7).mean() * 100
 ```
-
----
-
 ### 5. Compliance Gaps
 - On-time payment compliance stands at **80.1%**, while **19.9% of importers delayed tax payments** beyond due dates.  
 - This suggests gaps in enforcement and an opportunity for **automated reminders, penalties, and compliance monitoring systems**.
@@ -284,9 +267,6 @@ df["Processing_Days"].mean(), (df["Processing_Days"] > 7).mean() * 100
 df["On_Time"] = df["Receipt_date"] <= df["Due_date"]
 df["On_Time"].mean()
 ```
-
----
-
 ### 6. Seasonal and Temporal Trends
 - Trade volumes show strong monthly variation.  
 - CIF imports **peaked in January 2022 (≈ $355B)**, then **dropped to $96B in March 2022**.
@@ -297,21 +277,23 @@ monthly_cif = df.groupby(df["Reg_date"].dt.to_period("M"))["CIF_value($)"].sum()
 monthly_cif
 ```
 
+## Conclusions
 
+This analysis of trade and customs data revealed several key insights:  
 
----
+- Strong correlations exist between **FOB, CIF, and Total Tax**, confirming their central role in trade monitoring.  
+- **China** and a few HS code sections dominate Nigeria’s imports, highlighting potential dependency risks.  
+- Clear **seasonal and temporal trends** were observed, with trade volumes peaking around **festive and agricultural cycles**.  
+- Tax contributions vary significantly across HS code sections, suggesting uneven revenue distribution.  
+- Outlier transactions and irregular CIF-FOB ratios indicate areas where **compliance monitoring** can be strengthened.  
 
+These findings underscore the importance of **data-driven customs management** to improve efficiency, reduce revenue leakages, and guide economic policy.  
 
+## Contact
 
+For questions, collaborations, or project discussions:  
 
-
-
-
-
-
-
-
-
-
-
-
+**Maureen Okoro**  
+📧 Email: [okoromaureen590@gmail.com]  
+🌐 GitHub: [your-github-link]  
+🔗 LinkedIn: [your-linkedin-link]  
