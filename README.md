@@ -41,6 +41,7 @@ Customs agencies face several recurring challenges that hinder efficiency and re
 
 Without structured analysis, these issues remain hidden within raw data.  
 This project uses data analytics to uncover inefficiencies, identify risks, and highlight opportunities for reform.
+
 ---
 
 ## Data Sources
@@ -225,34 +226,82 @@ An interactive dashboard was developed to visualize key insights from the trade 
 The dashboard was deployed using **Render** for public accessibility.  
 
 🔗 [View the Live Dashboard](https://your-dashboard-link-here.com)
----
 
+---
 ## Findings and Insights
 
-### 1. Concentration of Imports
-- Over **62% of total import value (CIF)** came from just **three countries**, with **China alone contributing ~45%**.  
-- Similarly, fewer than **20 HS codes** accounted for **70% of CIF value**, indicating a heavy dependency on limited product categories.  
-- This exposes the economy to supply chain risks if these partners face disruptions.  
+### 1. Country Dependence
+- Imports are dominated by a few countries, with **China alone accounting for 40.37% of CIF value (≈ $778B)**.  
+- Other major sources include **Lebanon (6.27%)**, **Italy (6.17%)**, **United Kingdom (6.09%)**, and **India (5.99%)**.  
+- Combined, the **top 5 countries contribute over 65%** of total import value, showing high reliance on limited trade partners.  
+- This level of concentration exposes customs revenue to risks from **geopolitical or economic shifts** in these countries.
+  
+```python
+# Top 5 countries by CIF share
+country_share = df.groupby("Country_of_origin")["CIF_value($)"].sum().nlargest(5)
+country_share_percent = (country_share / df["CIF_value($)"].sum()) * 100
+print(country_share_percent)
+```
 
-### 2. Taxation Patterns
-- **Correlation analysis (r = 0.91)** revealed a very strong linear relationship between **CIF value and Total Tax**.  
-- Taxation is therefore primarily **value-based (ad valorem)** rather than weight- or volume-based.  
-- For example, a $1M CIF shipment attracted an average tax of **$112K**, regardless of mass.  
 
-### 3. Processing Delays
-- Analysis of registration and release dates showed that **31% of shipments exceeded the 7-day SLA**.  
-- The average delay for late shipments was **4.6 days**, with the worst offices recording delays up to **15 days**.  
-- These delays can create bottlenecks in logistics and increase costs for importers.  
+### 2. Product Categories (section name)
+- Imports are concentrated within a narrow set of product categories.  
+- **HS Code 28721000 alone contributes 7.79% of imports (≈ $150B)**.  
+- The **top 5 HS codes collectively account for nearly 28%** of trade value.  
+- This concentration means disruptions in just a few product classes would significantly impact trade revenue.
+```python
+# Top 5 HS codes by CIF value
+hs_share = df.groupby("HS_code")["CIF_value($)"].sum().nlargest(5)
+hs_share_percent = (hs_share /df["CIF_value($)"].sum()) * 100
+print(hs_share_percent)
+```
 
-### 4. Compliance Gaps
-- **18% of importers** failed to make tax payments by the due date.  
-- Among compliant importers, average payment timeliness was **2.3 days early**, whereas late payers averaged **6.8 days overdue**.  
-- Performance varied by office: some achieved **95% on-time compliance**, while others dropped below **70%**.  
+### 3. Taxation Efficiency
+- Correlation analysis shows a **strong positive relationship (r = 0.72)** between **CIF value** and **Total Tax collected**.  
+- This confirms that taxation is primarily **value-based (ad valorem)**.  
+- However, a minority of shipments deviate from the trend, suggesting potential cases of **under-taxation, over-taxation, or misclassification**.  
+- These anomalies highlight opportunities for **targeted auditing and compliance checks**.
+```python
+df["CIF_value($)"].corr(df["Total_Tax($)"])
+```
+---
 
-### 5. Seasonal Trends
-- Import volumes consistently peaked in **Q4 (October–December)**, with CIF values rising by an average of **35% above baseline months**.  
-- This trend aligns with **festive demand cycles** and should guide resource allocation in customs offices.  
-- Predictive models could use this seasonality to anticipate revenue inflows and manpower needs.  
+### 4. Processing Timeliness
+- The **average processing time** from registration to receipt is **4.5 days**.  
+- While most shipments fall within the expected 7-day SLA, **19.9% of transactions exceeded 7 days**, pointing to inefficiencies.  
+- Such delays increase importer costs and slow trade flows, signaling the need for operational reforms.
+```python
+df["Processing_Days"] = (df["Receipt_date"] - df["Reg_date"]).dt.days
+df["Processing_Days"].mean(), (df["Processing_Days"] > 7).mean() * 100
+```
+
+---
+
+### 5. Compliance Gaps
+- On-time payment compliance stands at **80.1%**, while **19.9% of importers delayed tax payments** beyond due dates.  
+- This suggests gaps in enforcement and an opportunity for **automated reminders, penalties, and compliance monitoring systems**.
+```python
+df["On_Time"] = df["Receipt_date"] <= df["Due_date"]
+df["On_Time"].mean()
+```
+
+---
+
+### 6. Seasonal and Temporal Trends
+- Trade volumes show strong monthly variation.  
+- CIF imports **peaked in January 2022 (≈ $355B)**, then **dropped to $96B in March 2022**.
+
+- These fluctuations suggest **seasonal trade cycles** (festive periods, agriculture, or global demand shifts) that customs can leverage for **forecasting and resource planning**.
+```python
+monthly_cif = df.groupby(df["Reg_date"].dt.to_period("M"))["CIF_value($)"].sum()
+monthly_cif
+```
+
+
+
+---
+
+
 
 
 
