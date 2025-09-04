@@ -231,6 +231,8 @@ The dashboard was deployed using **Render** for public accessibility.
 - A few countries heavily dominate imports. China alone accounts for 40.37% of CIF value, approximately $778 billion. Other significant sources include Lebanon (6.27%), Italy (6.17%), the United Kingdom (6.09%), and India (5.99%).  
 - Combined, the top five countries contribute over 65% of the total import value, highlighting a strong dependence on a limited set of trade partners.  
 - This concentration exposes customs revenue to external risks, such as geopolitical tensions, trade restrictions, or economic instability in these key countries. It also emphasizes the need for diversification strategies to reduce vulnerability and ensure stable trade revenue streams.
+  <img width="644" height="301" alt="image" src="https://github.com/user-attachments/assets/41cf05cb-6bff-4ddb-9dc7-9c985b40f4ff" />
+
   
 ```python
 # Top 5 countries by CIF share
@@ -258,6 +260,11 @@ print(hs_share_percent)
 section_share = df.groupby("section")["CIF_value($)"].sum().nlargest(5)
 (section_share / df["CIF_value($)"].sum() * 100).round(2)
 ```
+<img width="833" height="301" alt="image" src="https://github.com/user-attachments/assets/02db47ef-c634-4e43-9383-c481991c931f" /> 
+<img width="545" height="301" alt="image" src="https://github.com/user-attachments/assets/5ad778b7-83b2-40db-847a-1dae45a39890" /> 
+<img width="599" height="301" alt="image" src="https://github.com/user-attachments/assets/099e1bb8-b151-4d78-b310-ef98b1a65a21" />
+
+
 
 ### 3. Taxation Efficiency
 Correlation analysis shows a strong positive relationship (r = 0.72) between CIF value and total tax collected, indicating that taxation is largely value-based (ad valorem).
@@ -265,9 +272,18 @@ Correlation analysis shows a strong positive relationship (r = 0.72) between CIF
 Despite this overall trend, a minority of shipments deviate significantly, pointing to potential under-taxation, over-taxation, or misclassification.
 
 These deviations highlight areas where targeted audits, enhanced verification, or automated checks could improve revenue accuracy and ensure compliance.
+
 ```python
 df["CIF_value($)"].corr(df["Total_Tax($)"])
 ```
+<img width="613" height="470" alt="image" src="https://github.com/user-attachments/assets/8c8cf398-c7c6-4b7d-8c3c-34d03de2432d" />
+
+```python
+corr = df[["FOB_value($)", "CIF_value($)", "Total_Tax($)"]].corr()
+print("\nCorrelation Matrix:\n", corr)
+```
+<img width="524" height="435" alt="image" src="https://github.com/user-attachments/assets/d66f148a-2e8b-4987-9e42-2b25ad92ab67" />
+
 
 ### 4. Processing Timeliness
 The average processing time from registration to receipt is 4.5 days, which is generally within the expected 7-day service level agreement.
@@ -275,10 +291,34 @@ The average processing time from registration to receipt is 4.5 days, which is g
 However, approximately 19.9% of transactions exceeded 7 days, indicating inefficiencies in customs processing.
 
 Delays increase costs for importers, slow down trade flows, and may affect overall operational efficiency. Addressing these bottlenecks could improve customer satisfaction and streamline trade.
+
 ```python
 df["Processing_Days"] = (df["Receipt_date"] - df["Reg_date"]).dt.days
 df["Processing_Days"].mean(), (df["Processing_Days"] > 7).mean() * 100
+
+plt.figure(figsize=(8,5))
+plt.hist(df["Processing_days"], bins=20, color="skyblue", edgecolor="black")
+plt.axvline(7, color="red", linestyle="dashed", linewidth=2, label="SLA: 7 days")
+plt.title("Distribution of Processing Days")
+plt.xlabel("Processing Days")
+plt.ylabel("Frequency")
+plt.legend()
+plt.show()
 ```
+<img width="704" height="470" alt="image" src="https://github.com/user-attachments/assets/04e4bede-1ae0-4c15-9f14-fcd985a0bfd0" />
+
+```python
+sla_exceed = (df["Processing_days"] > 7).mean() * 100
+
+plt.figure(figsize=(5,5))
+plt.bar(["On-time", "Delayed"], [100 - sla_exceed, sla_exceed], color=["green", "red"])
+plt.title("Proportion of Transactions Exceeding SLA")
+plt.ylabel("Percentage (%)")
+plt.show()
+```
+<img width="454" height="451" alt="image" src="https://github.com/user-attachments/assets/553af9e6-4ba9-44f4-b569-bb5e8ecc363a" />
+
+
 ### 5. Compliance Gaps
 On-time payment compliance stands at 80.1%, meaning nearly 20% of importers delayed tax payments beyond the due date.
 
@@ -287,16 +327,20 @@ This gap highlights areas where enforcement could be strengthened, such as imple
 df["On_Time"] = df["Receipt_date"] <= df["Due_date"]
 df["On_Time"].mean()
 ```
+<img width="531" height="393" alt="image" src="https://github.com/user-attachments/assets/1149e434-9e1a-4ec5-a00c-7d51ddd52264" />
+
 ### 6. Seasonal and Temporal Trends
-rade volumes fluctuate significantly over the year. For instance, CIF imports peaked at approximately $355 billion in January 2022, before dropping to $96 billion in March 2022.
+
+Trade volumes fluctuate significantly over the year. For instance, CIF imports peaked at approximately $355 billion in January 2022, before dropping to $96 billion in March 2022.
 
 These fluctuations suggest predictable seasonal trade cycles driven by factors such as festive periods, agricultural production, or shifts in global demand.
 
 Recognizing these trends allows customs authorities to better forecast workload, allocate resources, and plan inspections or audits in line with expected trade volumes.
 ```python
-monthly_cif = df.groupby(df["Reg_date"].dt.to_period("M"))["CIF_value($)"].sum()
-monthly_cif
+monthly_trend = df.groupby(["Year","Month"])["CIF_value($)"].sum().reset_index()
+monthly_trend['Monthname'] = pd.to_datetime(monthly_trend['Month'], format='%m').dt.strftime('%b')
 ```
+<img width="1001" height="547" alt="image" src="https://github.com/user-attachments/assets/c4d97eb8-a39b-4697-a656-1cd8a3ddcf88" />
 
 ## Recommendations
 
