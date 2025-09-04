@@ -75,7 +75,7 @@ The following steps were applied to prepare the data for analysis:
 - Standardized country names using the `pycountry` library  
 - Handled missing values with forward fill and replacement strategies  
 - Converted date fields into proper `datetime` objects
-- Created chapter, section & section_name columns based on the guidance offered by : 
+- Created chapter, section & section_name columns based on the guidance offered by: https://github.com/datasets/harmonized-system/blob/main/data/harmonized-system.csv
 - Detected potential outliers using the IQR method  
 - Converted categorical identifiers (Importer, HS_code, Year, Chapter) to string type  
 
